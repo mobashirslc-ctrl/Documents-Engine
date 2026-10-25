@@ -66,7 +66,6 @@ function UploadBox({ title, hint, compact = false, onFile }: { title: string; hi
   )
 }
 
-// Verification / Direct PDF Viewer Page
 function Verification({ onBack, data, isBankMode }: { onBack: () => void; data: any; isBankMode: boolean }) {
   if (isBankMode) {
     return (
@@ -113,31 +112,48 @@ function Verification({ onBack, data, isBankMode }: { onBack: () => void; data: 
     )
   }
 
-  // Direct PDF Upload View (Shows original uploaded document with the newly generated QR code attached)
+  // Direct PDF Upload View (Shows original uploaded document with the newly generated QR code attached on top layout)
   return (
-    <div className="verify-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f1f5f9', padding: '20px' }}>
-      <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', maxWidth: '700px', width: '100%', position: 'relative' }}>
-        <button onClick={onBack} style={{ marginBottom: '20px', background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}>← Back to Eduaimers QR Suite</button>
+    <div className="verify-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f8fafc', padding: '20px' }}>
+      <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', maxWidth: '800px', width: '100%' }}>
+        <button onClick={onBack} style={{ marginBottom: '15px', background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}>← Back to Eduaimers QR Suite</button>
         
-        {/* Header with New Generated QR Code */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #e2e8f0', paddingBottom: '20px', marginBottom: '20px' }}>
-          <div>
-            <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#1e293b', margin: 0 }}>Original Uploaded Document</h2>
-            <p style={{ color: '#64748b', fontSize: '14px', margin: '5px 0 0 0' }}><b>File:</b> {data.originalFileName || 'Trade_License.pdf'}</p>
+        {/* Document Frame mimicking Trade License layout with Integrated QR code */}
+        <div style={{ border: '2px solid #cbd5e1', borderRadius: '8px', padding: '24px', background: '#fff', position: 'relative' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '16px', marginBottom: '20px' }}>
+            <div style={{ border: '1px solid #cbd5e1', padding: '8px', background: '#fff', borderRadius: '6px', textAlign: 'center' }}>
+              <div style={{ width: '80px', height: '80px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: '#334155' }}>
+                NEW QR CODE
+              </div>
+              <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginTop: '4px' }}>Scan Verified</span>
+            </div>
+            <div style={{ textAlign: 'center', flex: 1, padding: '0 15px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>OFFICIAL DOCUMENT COPY</h2>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}><b>File Name:</b> {data.originalFileName || 'Trade_License.pdf'}</p>
+            </div>
+            <div>
+              <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>VERIFIED</span>
+            </div>
           </div>
-          <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
+
+          {/* Uploaded File View */}
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
             {data.originalFileUrl && data.originalFileName?.match(/\.(jpg|jpeg|png)$/i) ? (
-              <img src={data.originalFileUrl} alt="Uploaded Doc" style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', borderRadius: '6px', marginBottom: '15px' }} />
+              <img src={data.originalFileUrl} alt="Uploaded Document" style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
             ) : (
-              <div style={{ padding: '30px', background: '#f1f5f9', borderRadius: '6px', marginBottom: '15px', color: '#475569', fontWeight: 600 }}>
-                📄 {data.originalFileName || 'Document File Attached'}
+              <div style={{ padding: '50px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', color: '#475569', fontWeight: 600 }}>
+                📄 {data.originalFileName || 'Uploaded Document File'}
+                <p style={{ fontSize: '13px', color: '#64748b', marginTop: '8px' }}>Original document soft copy displayed with integrated tracking QR code.</p>
               </div>
             )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
             <a 
               href={data.originalFileUrl || '#'} 
               download={data.originalFileName || 'document.pdf'}
               className="primary" 
-              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 20px', background: '#2563eb', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#2563eb', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}
             >
               <Icon name="download" size={16}/> Download Original Copy
             </a>
@@ -290,7 +306,7 @@ export default function App() {
           {mode === 'direct' ? (
             <div className="grid-layout">
               <section className="panel form-panel">
-                <div className="panel-head"><span className="step">01</span><div><h2>Upload original PDF document</h2><p>Original file stays intact, new generated QR code gets attached for scanning.</p></div></div>
+                <div className="panel-head"><span className="step">01</span><div><h2>Upload original PDF document</h2><p>Original file stays intact, new generated QR code gets attached on top.</p></div></div>
                 <UploadBox title={fileName || 'Drop your Trade License PDF here'} hint={fileName ? 'Ready to generate QR code' : 'or click to browse · PDF up to 25MB'} onFile={(f) => { setActiveFile(f); setFileName(f.name); }}/>
                 <div className="settings-row"><div><b>Link settings</b><span>Configure access to the original document</span></div><label className="switch-row"><span>Allow public access</span><input type="checkbox" defaultChecked/><i/></label></div>
                 <button className="primary wide" disabled={loading || !activeFile} onClick={handleDirectUploadProcess}><span>{generated ? <Icon name="check"/> : <Icon name="grid"/>}</span>{loading ? 'Processing...' : generated ? 'QR code generated' : 'Generate QR code'}</button>
@@ -299,7 +315,7 @@ export default function App() {
                 <div className="panel-head small"><div><h2>QR code preview</h2><p>Updates after generation</p></div><span className={generated?'status live':'status'}>{generated?'Live':'Preview'}</span></div>
                 <div className="qr-stage" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
-                  <span style={{ marginTop: '10px' }}>Scan to view original Trade License</span>
+                  <span style={{ marginTop: '10px' }}>Scan to view original document copy</span>
                 </div>
                 <div className="url-block"><label>Unique document URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
                 <div className="download-row">
