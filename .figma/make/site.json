@@ -1,0 +1,10 @@
+{
+  "description": "Helps organizations generate QR-linked PDFs and customized bank statements, with a polished verification page for reviewing digitally generated document details.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
