@@ -62,8 +62,8 @@ function UploadBox({ title, hint, compact = false, onFile }: { title: string; hi
   )
 }
 
-// Verification Component - Directly opens the uploaded document on scan
-function Verification({ docId, isBankMode }: { docId: string; isBankMode: boolean }) {
+// Verification Component - Renders either Trade License or Bank Statement Templates
+function Verification({ docId }: { docId: string }) {
   const [docData, setDocData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -71,8 +71,14 @@ function Verification({ docId, isBankMode }: { docId: string; isBankMode: boolea
     async function fetchDoc() {
       if (!docId) return
       try {
-        const docRef = doc(db, isBankMode ? "bank_statements" : "documents", docId)
-        const docSnap = await getDoc(docRef)
+        let docRef = doc(db, "bank_statements", docId)
+        let docSnap = await getDoc(docRef)
+        
+        if (!docSnap.exists()) {
+          docRef = doc(db, "documents", docId)
+          docSnap = await getDoc(docRef)
+        }
+
         if (docSnap.exists()) {
           setDocData(docSnap.data())
         }
@@ -83,12 +89,12 @@ function Verification({ docId, isBankMode }: { docId: string; isBankMode: boolea
       }
     }
     fetchDoc()
-  }, [docId, isBankMode])
+  }, [docId])
 
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', fontFamily: 'sans-serif' }}>
-        <p style={{ fontSize: '18px', color: '#64748b', fontWeight: 600 }}>Loading document...</p>
+        <p style={{ fontSize: '18px', color: '#64748b', fontWeight: 600 }}>Loading verified document...</p>
       </div>
     )
   }
@@ -96,63 +102,177 @@ function Verification({ docId, isBankMode }: { docId: string; isBankMode: boolea
   if (!docData) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc', fontFamily: 'sans-serif' }}>
-        <p style={{ fontSize: '18px', color: '#ef4444', fontWeight: 600 }}>Document not found or expired.</p>
+        <p style={{ fontSize: '18px', color: '#ef4444', fontWeight: 600 }}>Document not found or invalid link.</p>
       </div>
     )
   }
 
-  if (isBankMode) {
+  // Direct Document Soft Copy View
+  if (docData.type === "direct_pdf") {
     return (
-      <div className="verify-page">
-        <header className="bank-header">
-          <div className="bank-brand">
-            {docData.bankLogoUrl ? (
-              <img src={docData.bankLogoUrl} alt="Bank Logo" style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px' }} />
-            ) : (
-              <div className="bank-seal">{docData.bankLogoText || 'PB'}</div>
-            )}
-            <div><b>{docData.bankName || 'Pubali Bank PLC.'}</b><span>DIGITAL VERIFIED STATEMENT</span></div>
+      <div style={{ width: '100%', minHeight: '100vh', background: '#fff', margin: 0, padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {docData.fileData ? (
+          docData.fileName?.match(/\.pdf$/i) ? (
+            <iframe src={docData.fileData} style={{ width: '100vw', height: '100vh', border: 'none' }} title="Document PDF" />
+          ) : (
+            <img src={docData.fileData} alt="Document Copy" style={{ width: '100%', height: 'auto', maxHeight: '100vh', objectFit: 'contain' }} />
+          )
+        ) : (
+          <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+            <h2>{docData.fileName || 'Document'}</h2>
+            <p>File loaded successfully.</p>
           </div>
-        </header>
-        <main className="verify-main">
-          <div className="valid-badge"><span><Icon name="check" size={20}/></span>Valid Statement</div>
-          <article className="certificate">
-            <h1>OFFICIAL BANK STATEMENT</h1>
-            <div className="certificate-details">
-              <label>ACCOUNT HOLDER NAME: <b>{docData.holderName}</b></label>
-              <label>CERTIFICATE ID: <b>{docData.certId}</b></label>
-              <label>DATE: <b>{docData.stmtPeriod}</b></label>
+        )}
+      </div>
+    )
+  }
+
+  // BANK STATEMENT TEMPLATE VIEW
+  const themeColor = docData.themeColor || '#006a4e'
+
+  return (
+    <div style={{ background: '#f8fafc', minHeight: '100vh', fontFamily: 'Arial, sans-serif', paddingBottom: '40px' }}>
+      {/* Dynamic Bank Header Bar */}
+      <header style={{ background: themeColor, color: '#fff', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {docData.bankLogoUrl ? (
+            <img src={docData.bankLogoUrl} alt="Bank Logo" style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#fff', borderRadius: '4px', padding: '2px' }} />
+          ) : (
+            <div style={{ background: '#fff', color: themeColor, fontWeight: 'bold', width: '36px', height: '36px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
+              {docData.bankLogoText || 'BANK'}
             </div>
-            <div className="table-wrap">
-              <table>
-                <thead><tr><th>SL#</th><th>A/C NUMBER</th><th>OPEN DATE</th><th>A/C TYPE</th><th>BALANCE (BDT)</th></tr></thead>
+          )}
+          <div>
+            <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{docData.bankName || 'PUBALI BANK PLC.'}</h2>[cite: 12, 13]
+            <span style={{ fontSize: '11px', opacity: 0.9 }}>Document Verifier</span>[cite: 12]
+          </div>
+        </div>
+        <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+          Visit Website
+        </button>
+      </header>
+
+      {/* Main Body */}
+      <main style={{ maxWidth: '640px', margin: '30px auto', padding: '0 16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+          <div style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#166534', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Icon name="check" size={16}/> Valid Statement[cite: 12, 13]
+          </div>
+        </div>
+
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', margin: '0 0 20px 0' }}>
+          The following details are confirmed and digitally generated by {docData.bankName || 'Pubali Bank PLC.'}[cite: 12, 13]
+        </p>
+
+        {/* TEMPLATE TYPE 1: TO WHOM IT MAY CONCERN */}
+        {docData.templateType === 'certificate' ? (
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <h3 style={{ textDecoration: 'underline', textAlign: 'center', fontSize: '16px', fontWeight: 'bold', margin: '0 0 20px 0', color: '#0f172a' }}>
+              TO WHOM IT MAY CONCERN[cite: 12]
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '11px', color: '#64748b', marginBottom: '20px' }}>
+              <div>
+                <span>ACCOUNT HOLDER NAME:</span>[cite: 12]<br/>
+                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.holderName}</b>[cite: 12]
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span>DATE:</span>[cite: 12]<br/>
+                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.stmtPeriod}</b>[cite: 12]
+              </div>
+              <div>
+                <span>CERTIFICATE ID:</span>[cite: 12]<br/>
+                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.certId}</b>[cite: 12]
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                    <th style={{ padding: '8px' }}>SL#[cite: 12]</th>
+                    <th style={{ padding: '8px' }}>A/C NUMBER[cite: 12]</th>
+                    <th style={{ padding: '8px' }}>OPEN DATE[cite: 12]</th>
+                    <th style={{ padding: '8px' }}>A/C TYPE[cite: 12]</th>
+                    <th style={{ padding: '8px', textAlign: 'right' }}>BALANCE (BDT)[cite: 12]</th>
+                    <th style={{ padding: '8px', textAlign: 'right' }}>BALANCE (USD)[cite: 12]</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  <tr><td>1</td><td>{docData.accNumber}</td><td>25-Jun-2019</td><td>{docData.accType}</td><td className="amount">{docData.balance}</td></tr>
-                  <tr className="total"><td colSpan={4}>Total</td><td>{docData.balance}</td></tr>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '10px 8px' }}>1[cite: 12]</td>
+                    <td style={{ padding: '10px 8px' }}>{docData.accNumber}[cite: 12]</td>
+                    <td style={{ padding: '10px 8px' }}>{docData.openDate || '25-Jun-2019'}</td>[cite: 12]
+                    <td style={{ padding: '10px 8px' }}>{docData.accType}[cite: 12]</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold' }}>{docData.balanceBdt}</td>[cite: 12]
+                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold' }}>{docData.balanceUsd}</td>[cite: 12]
+                  </tr>
+                  <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                    <td colSpan={4} style={{ padding: '10px 8px', textAlign: 'right' }}>Total[cite: 12]</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', color: themeColor }}>{docData.balanceBdt}</td>[cite: 12]
+                    <td style={{ padding: '10px 8px', textAlign: 'right', color: themeColor }}>{docData.balanceUsd}</td>[cite: 12]
+                  </tr>
                 </tbody>
               </table>
             </div>
-          </article>
-        </main>
-      </div>
-    )
-  }
-
-  // Direct trade license / document full view on scan
-  return (
-    <div style={{ width: '100%', minHeight: '100vh', background: '#fff', margin: 0, padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      {docData.fileData ? (
-        docData.fileName?.match(/\.pdf$/i) ? (
-          <iframe src={docData.fileData} style={{ width: '100vw', height: '100vh', border: 'none' }} title="Document PDF" />
+          </div>
         ) : (
-          <img src={docData.fileData} alt="Document Copy" style={{ width: '100%', height: 'auto', maxHeight: '100vh', objectFit: 'contain' }} />
-        )
-      ) : (
-        <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-          <h2>{docData.fileName || 'Document'}</h2>
-          <p>File loaded successfully.</p>
-        </div>
-      )}
+          /* TEMPLATE TYPE 2: STATEMENT SUMMARY */
+          <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <h3 style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', margin: '0 0 20px 0', color: '#0f172a' }}>
+              Statement Summary[cite: 13]
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>ACCOUNT NO:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '15px', color: '#0f172a' }}>{docData.accNumber}</b>[cite: 13]
+              </div>
+
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>ACCOUNT TYPE:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '14px', color: '#0f172a' }}>{docData.accType}</b>[cite: 13]
+              </div>
+
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>ACCOUNT NAME:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '14px', color: '#0f172a' }}>{docData.holderName} (OWNER NAME: {docData.ownerName || docData.holderName})</b>[cite: 13]
+              </div>
+
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>OPENING BALANCE:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '14px', color: themeColor }}>{docData.openingBalance}</b>[cite: 13]
+              </div>
+
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>CLOSING BALANCE:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '14px', color: themeColor }}>{docData.closingBalance}</b>[cite: 13]
+              </div>
+
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>STATEMENT PERIOD:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.stmtPeriod}</b>[cite: 13]
+              </div>
+
+              <div>
+                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>CERTIFICATE ID:</span>[cite: 13]<br/>
+                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.certId}</b>[cite: 13]
+              </div>
+
+              <div style={{ marginTop: '10px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', color: '#64748b', fontSize: '11px', textAlign: 'center' }}>
+                STATEMENT GENERATED DATE: {docData.generatedDate || '9/22/2026 12:59:42 PM'}[cite: 13]
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Contact Details */}
+        <footer style={{ marginTop: '25px', textAlign: 'center', fontSize: '11px', color: '#64748b', lineHeight: '1.6' }}>
+          {docData.helpline && <div>Helpline: {docData.helpline}</div>}[cite: 12]
+          {docData.email && <div>Email: {docData.email}</div>}
+          {docData.address && <div>Head Office: {docData.address}</div>}[cite: 12]
+        </footer>
+      </main>
     </div>
   )
 }
@@ -164,17 +284,33 @@ export default function App() {
   const [fileName, setFileName] = useState('')
   const [activeFileBase64, setActiveFileBase64] = useState('')
   
-  // Bank Custom States
-  const [bankLogoFile, setBankLogoFile] = useState<File | null>(null)
+  // Bank Custom Branding States
+  const [bankName, setBankName] = useState('PUBALI BANK PLC.')
   const [bankLogoText, setBankLogoText] = useState('PB')
   const [bankLogoUrl, setBankLogoUrl] = useState('')
-  const [bankName, setBankName] = useState('Pubali Bank PLC.')
-  const [holderName, setHolderName] = useState('SAJID MAHMUD FAHAD')
+  const [themeColor, setThemeColor] = useState('#006a4e')
+  const [helpline, setHelpline] = useState('+8809660616253, 16253')
+  const [email, setEmail] = useState('info@pubalibankbd.com')
+  const [address, setAddress] = useState('26, Dilkusha C/A, Dhaka-1000, Bangladesh')
+
+  // Statement Template Switcher
+  const [templateType, setTemplateType] = useState<'certificate' | 'summary'>('certificate')
+
+  // Statement Fields
+  const [holderName, setHolderName] = useState('MOSTAK AHMED')
+  const [ownerName, setOwnerName] = useState('HASHIM MOSTAK AHMAD')
   const [accNumber, setAccNumber] = useState('3720101077850')
+  const [accType, setAccType] = useState('SAVINGS BANK ACCOUNT')
   const [stmtPeriod, setStmtPeriod] = useState('22-Sep-2026')
-  const [balance, setBalance] = useState('৳6,09,671.50')
-  const [accType, setAccType] = useState('Savings Bank Account')
+  const [openDate, setOpenDate] = useState('25-Jun-2019')
   const [certId, setCertId] = useState('226047078')
+  
+  // Amounts
+  const [balanceBdt, setBalanceBdt] = useState('৳6,09,671.50')
+  const [balanceUsd, setBalanceUsd] = useState('4,936.61')
+  const [openingBalance, setOpeningBalance] = useState('৳8,54,117.50')
+  const [closingBalance, setClosingBalance] = useState('৳15,15,318.00')
+  const [generatedDate, setGeneratedDate] = useState('9/22/2026 12:59:42 PM')
 
   const [copied, setCopied] = useState(false)
   const [generated, setGenerated] = useState(false)
@@ -193,7 +329,7 @@ export default function App() {
     }
   }, [])
 
-  if (page === 'verify') return <Verification docId={verifyId} isBankMode={mode === 'bank'} />
+  if (page === 'verify') return <Verification docId={verifyId} />
 
   const downloadPNG = () => {
     if (!qrCanvasRef.current) return
@@ -216,7 +352,6 @@ export default function App() {
     })
   }
 
-  // Convert file to base64 for persistent cloud storage
   const handleFileUpload = (file: File) => {
     setFileName(file.name)
     const reader = new FileReader()
@@ -228,7 +363,6 @@ export default function App() {
     reader.readAsDataURL(file)
   }
 
-  // Direct Document Upload Handler
   const handleDirectUploadProcess = async () => {
     if (!activeFileBase64) return
     setLoading(true)
@@ -244,31 +378,36 @@ export default function App() {
       setGenerated(true)
     } catch (error) {
       console.error("Firestore error:", error)
-      alert("Failed to generate QR link. Please check Firebase config.")
     } finally {
       setLoading(false)
     }
   }
 
-  // Custom Bank Statement Handler
   const handleBankStatementProcess = async () => {
     setLoading(true)
     try {
-      let logoUrl = bankLogoUrl
-      if (bankLogoFile) {
-        logoUrl = URL.createObjectURL(bankLogoFile)
-      }
-
       const docRef = await addDoc(collection(db, "bank_statements"), {
+        type: "bank_statement",
+        templateType,
         bankName,
         bankLogoText,
-        bankLogoUrl: logoUrl,
+        bankLogoUrl,
+        themeColor,
+        helpline,
+        email,
+        address,
         holderName,
+        ownerName,
         accNumber,
-        stmtPeriod,
-        balance,
         accType,
+        stmtPeriod,
+        openDate,
         certId,
+        balanceBdt,
+        balanceUsd,
+        openingBalance,
+        closingBalance,
+        generatedDate,
         createdAt: serverTimestamp()
       })
       const liveLink = `${baseUrl}?id=${docRef.id}`
@@ -296,7 +435,7 @@ export default function App() {
           <div className="top-actions"><label className="search"><Icon name="search"/><input placeholder="Search records..."/><kbd>⌘ K</kbd></label><button className="icon-btn"><Icon name="bell"/><i/></button><div className="profile"><span>MA</span><div><b>Mostak Ahmed</b><small>Administrator</small></div><Icon name="arrow" size={14}/></div></div>
         </header>
         <main className="content">
-          <div className="title-row"><div><p>DOCUMENT ENGINE</p><h1>Generate secure document QR</h1><span>Upload your document to generate instant view QR link.</span></div></div>
+          <div className="title-row"><div><p>DOCUMENT ENGINE</p><h1>Generate secure document QR</h1><span>Create dynamic, verifiable links for Trade License & Bank Statements.</span></div></div>
           <div className="tabs">
             <button className={mode==='direct'?'active':''} onClick={() => { setMode('direct'); setGenerated(false); }}><Icon name="file"/>Direct PDF upload</button>
             <button className={mode==='bank'?'active':''} onClick={() => { setMode('bank'); setGenerated(false); }}><Icon name="bank"/>Custom bank statement</button>
@@ -323,41 +462,99 @@ export default function App() {
               </aside>
             </div>
           ) : (
-            <div className="bank-builder">
-              <section className="panel builder-form">
-                <div className="panel-head"><span className="step">01</span><div><h2>Custom bank statement template options</h2><p>Configure bank name, upload bank logo image and statement details.</p></div></div>
-                <div className="fields">
+            <div className="bank-builder" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '20px' }}>
+              <section className="panel builder-form" style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div className="panel-head" style={{ marginBottom: '20px' }}>
+                  <span className="step">01</span>
+                  <div>
+                    <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Custom Bank Statement Engine</h2>
+                    <p style={{ fontSize: '13px', color: '#64748b' }}>Configure Bank Branding & Statement Template Format</p>
+                  </div>
+                </div>
+
+                {/* Template Selector */}
+                <div style={{ marginBottom: '20px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  <label style={{ fontWeight: 700, fontSize: '13px', display: 'block', marginBottom: '8px' }}>Select Statement Template Type:</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setTemplateType('certificate')}
+                      style={{ flex: 1, padding: '10px', borderRadius: '6px', border: templateType==='certificate'?'2px solid #2563eb':'1px solid #cbd5e1', background: templateType==='certificate'?'#eff6ff':'#fff', color: templateType==='certificate'?'#2563eb':'#334155', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      TO WHOM IT MAY CONCERN (Certificate)
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setTemplateType('summary')}
+                      style={{ flex: 1, padding: '10px', borderRadius: '6px', border: templateType==='summary'?'2px solid #2563eb':'1px solid #cbd5e1', background: templateType==='summary'?'#eff6ff':'#fff', color: templateType==='summary'?'#2563eb':'#334155', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      Statement Summary
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bank Branding Options */}
+                <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>1. Bank Branding & Contact Options</h3>
+                <div className="fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <label><span>Bank Name</span><input value={bankName} onChange={e => setBankName(e.target.value)}/></label>
-                  <label><span>Bank Logo Image Upload</span>
+                  <label><span>Bank Theme Color (Pad Color)</span><input type="color" value={themeColor} onChange={e => setThemeColor(e.target.value)} style={{ height: '38px', cursor: 'pointer' }}/></label>
+                  <label><span>Bank Logo Text / Initials</span><input value={bankLogoText} onChange={e => setBankLogoText(e.target.value)}/></label>
+                  <label><span>Bank Logo Upload (Image)</span>
                     <input type="file" accept="image/*" onChange={e => {
                       if(e.target.files?.[0]) {
-                        setBankLogoFile(e.target.files[0])
-                        setBankLogoUrl(URL.createObjectURL(e.target.files[0]))
+                        const r = new FileReader()
+                        r.onload = ev => setBankLogoUrl(ev.target?.result as string)
+                        r.readAsDataURL(e.target.files[0])
                       }
-                    }} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}/>
+                    }} style={{ fontSize: '11px' }}/>
                   </label>
-                  <label><span>Account holder name</span><input value={holderName} onChange={e => setHolderName(e.target.value)}/></label>
-                  <label><span>Account number</span><input value={accNumber} onChange={e => setAccNumber(e.target.value)}/></label>
-                  <label><span>Statement period / Date</span><input value={stmtPeriod} onChange={e => setStmtPeriod(e.target.value)}/></label>
-                  <label><span>Balance (BDT)</span><input value={balance} onChange={e => setBalance(e.target.value)}/></label>
-                  <label><span>Account type</span><input value={accType} onChange={e => setAccType(e.target.value)}/></label>
-                  <label><span>Certificate ID</span><input value={certId} onChange={e => setCertId(e.target.value)}/></label>
+                  <label><span>Helpline / Phone</span><input value={helpline} onChange={e => setHelpline(e.target.value)}/></label>
+                  <label><span>Bank Email</span><input value={email} onChange={e => setEmail(e.target.value)}/></label>
+                  <label style={{ gridColumn: 'span 2' }}><span>Head Office Address</span><input value={address} onChange={e => setAddress(e.target.value)}/></label>
                 </div>
-                <button className="primary wide" disabled={loading} onClick={handleBankStatementProcess}><span><Icon name={generated?'check':'grid'}/></span>{loading ? 'Processing...' : generated?'Statement generated successfully':'Process & generate custom statement with QR'}</button>
+
+                {/* Statement Fields based on Selected Template */}
+                <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>2. Statement Information Fields</h3>
+                <div className="fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                  <label><span>Account Holder Name</span><input value={holderName} onChange={e => setHolderName(e.target.value)}/></label>
+                  <label><span>Owner Name (for Summary)</span><input value={ownerName} onChange={e => setOwnerName(e.target.value)}/></label>
+                  <label><span>Account Number</span><input value={accNumber} onChange={e => setAccNumber(e.target.value)}/></label>
+                  <label><span>Account Type</span><input value={accType} onChange={e => setAccType(e.target.value)}/></label>
+                  <label><span>Certificate ID</span><input value={certId} onChange={e => setCertId(e.target.value)}/></label>
+                  <label><span>Statement Period / Date</span><input value={stmtPeriod} onChange={e => setStmtPeriod(e.target.value)}/></label>
+
+                  {templateType === 'certificate' ? (
+                    <>
+                      <label><span>Account Open Date</span><input value={openDate} onChange={e => setOpenDate(e.target.value)}/></label>
+                      <label><span>Balance (BDT)</span><input value={balanceBdt} onChange={e => setBalanceBdt(e.target.value)}/></label>
+                      <label><span>Balance (USD)</span><input value={balanceUsd} onChange={e => setBalanceUsd(e.target.value)}/></label>
+                    </>
+                  ) : (
+                    <>
+                      <label><span>Opening Balance</span><input value={openingBalance} onChange={e => setOpeningBalance(e.target.value)}/></label>
+                      <label><span>Closing Balance</span><input value={closingBalance} onChange={e => setClosingBalance(e.target.value)}/></label>
+                      <label style={{ gridColumn: 'span 2' }}><span>Statement Generated Date/Time</span><input value={generatedDate} onChange={e => setGeneratedDate(e.target.value)}/></label>
+                    </>
+                  )}
+                </div>
+
+                <button className="primary wide" disabled={loading} onClick={handleBankStatementProcess} style={{ background: themeColor }}>
+                  <span><Icon name={generated?'check':'grid'}/></span>
+                  {loading ? 'Processing...' : generated ? 'Bank Statement Generated' : 'Generate Custom Bank Statement QR'}
+                </button>
               </section>
-              <aside className="panel document-preview">
-                <div className="panel-head small"><div><h2>Statement preview</h2><p>Real-time document preview</p></div><span className="status live">Live</span></div>
-                <div className="mini-doc">
-                  <div className="mini-brand">
-                    {bankLogoUrl ? <img src={bankLogoUrl} alt="Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }}/> : <div className="bank-seal">{bankLogoText}</div>}
-                    <div><b>{bankName}</b><span>Digital Statement</span></div>
-                    <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
-                  </div>
-                  <h3>ACCOUNT STATEMENT</h3>
-                  <div className="mini-details"><span>Account holder<b>{holderName}</b></span><span>Statement period<b>{stmtPeriod}</b></span></div>
-                  <div className="mini-balance"><span>Closing balance</span><b>{balance}</b></div>
-                  <div className="mini-lines"><i/><i/><i/><i/></div>
-                  <small>Digitally generated statement · Certificate ID {certId}</small>
+
+              {/* QR Preview Side Bar */}
+              <aside className="panel preview-panel">
+                <div className="panel-head small"><div><h2>QR Code Preview</h2><p>Updates after generation</p></div><span className={generated?'status live':'status'}>{generated?'Live':'Preview'}</span></div>
+                <div className="qr-stage" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
+                  <span style={{ marginTop: '10px', fontSize: '12px', textAlign: 'center' }}>Scan to view verified bank statement page</span>
+                </div>
+                <div className="url-block"><label>Unique document URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
+                <div className="download-row">
+                  <button onClick={downloadPNG}><Icon name="download"/> PNG</button>
+                  <button onClick={downloadSVG}><Icon name="download"/> SVG</button>
                 </div>
               </aside>
             </div>
