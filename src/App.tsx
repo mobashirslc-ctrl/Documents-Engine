@@ -32,25 +32,21 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
-function QRCode({ value, canvasRef }: { value: string; canvasRef: React.RefObject<HTMLCanvasElement | null> }) {
+function QRCode({ value, canvasRef, size = 150 }: { value: string; canvasRef: React.RefObject<HTMLCanvasElement | null>; size?: number }) {
   useEffect(() => {
     if (canvasRef.current) {
       QRCodeLib.toCanvas(
         canvasRef.current,
         value || window.location.href,
-        { width: 180, margin: 1 },
+        { width: size, margin: 1 },
         (err) => {
           if (err) console.error("QR Rendering error:", err)
         }
       )
     }
-  }, [value, canvasRef])
+  }, [value, canvasRef, size])
 
-  return (
-    <div className="qr-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#fff', padding: '8px', borderRadius: '8px' }}>
-      <canvas ref={canvasRef} />
-    </div>
-  )
+  return <canvas ref={canvasRef} style={{ display: 'block' }} />
 }
 
 function UploadBox({ title, hint, compact = false, onFile }: { title: string; hint: string; compact?: boolean; onFile: (file: File) => void }) {
@@ -66,7 +62,7 @@ function UploadBox({ title, hint, compact = false, onFile }: { title: string; hi
   )
 }
 
-function Verification({ onBack, data, isBankMode }: { onBack: () => void; data: any; isBankMode: boolean }) {
+function Verification({ onBack, data, isBankMode, scanCanvasRef }: { onBack: () => void; data: any; isBankMode: boolean; scanCanvasRef: React.RefObject<HTMLCanvasElement | null> }) {
   if (isBankMode) {
     return (
       <div className="verify-page">
@@ -112,38 +108,40 @@ function Verification({ onBack, data, isBankMode }: { onBack: () => void; data: 
     )
   }
 
-  // Direct PDF Upload View (Shows original uploaded document with the newly generated QR code attached on top layout)
+  // Direct Uploaded Document View with New QR Code Positioned at Top-Left Corner
   return (
     <div className="verify-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f8fafc', padding: '20px' }}>
-      <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', maxWidth: '800px', width: '100%' }}>
+      <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', maxWidth: '850px', width: '100%', position: 'relative' }}>
         <button onClick={onBack} style={{ marginBottom: '15px', background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontWeight: 600 }}>← Back to Eduaimers QR Suite</button>
         
-        {/* Document Frame mimicking Trade License layout with Integrated QR code */}
+        {/* Document Container with Top-Left Integrated New QR Code */}
         <div style={{ border: '2px solid #cbd5e1', borderRadius: '8px', padding: '24px', background: '#fff', position: 'relative' }}>
+          
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '16px', marginBottom: '20px' }}>
-            <div style={{ border: '1px solid #cbd5e1', padding: '8px', background: '#fff', borderRadius: '6px', textAlign: 'center' }}>
-              <div style={{ width: '80px', height: '80px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: '#334155' }}>
-                NEW QR CODE
-              </div>
-              <span style={{ fontSize: '10px', color: '#64748b', display: 'block', marginTop: '4px' }}>Scan Verified</span>
+            {/* NEW GENERATED QR CODE EMBEDDED AT TOP-LEFT */}
+            <div style={{ border: '1px solid #cbd5e1', padding: '6px', background: '#fff', borderRadius: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
+              <QRCode value={data.scanUrl} canvasRef={scanCanvasRef} size={130} />
+              <span style={{ fontSize: '10px', color: '#166534', fontWeight: 700, display: 'block', textAlign: 'center', marginTop: '4px' }}>VERIFIED QR</span>
             </div>
+            
             <div style={{ textAlign: 'center', flex: 1, padding: '0 15px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: 0 }}>OFFICIAL DOCUMENT COPY</h2>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}><b>File Name:</b> {data.originalFileName || 'Trade_License.pdf'}</p>
+              <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Uploaded Document Soft Copy</h2>
+              <p style={{ fontSize: '14px', color: '#64748b', margin: '6px 0 0 0' }}><b>File Name:</b> {data.originalFileName || 'Trade_License.pdf'}</p>
             </div>
+
             <div>
-              <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>VERIFIED</span>
+              <span style={{ background: '#dcfce7', color: '#166534', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 700 }}>LIVE & VERIFIED</span>
             </div>
           </div>
 
-          {/* Uploaded File View */}
-          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+          {/* User's Original Uploaded Document Preview */}
+          <div style={{ textAlign: 'center', padding: '15px 0' }}>
             {data.originalFileUrl && data.originalFileName?.match(/\.(jpg|jpeg|png)$/i) ? (
-              <img src={data.originalFileUrl} alt="Uploaded Document" style={{ width: '100%', maxHeight: '500px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e2e8f0' }} />
+              <img src={data.originalFileUrl} alt="User Uploaded Document" style={{ width: '100%', maxHeight: '600px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
             ) : (
-              <div style={{ padding: '50px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', color: '#475569', fontWeight: 600 }}>
+              <div style={{ padding: '60px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', color: '#475569', fontWeight: 600 }}>
                 📄 {data.originalFileName || 'Uploaded Document File'}
-                <p style={{ fontSize: '13px', color: '#64748b', marginTop: '8px' }}>Original document soft copy displayed with integrated tracking QR code.</p>
+                <p style={{ fontSize: '13px', color: '#64748b', marginTop: '10px' }}>Your original uploaded file copy is successfully linked with the new generated QR code.</p>
               </div>
             )}
           </div>
@@ -153,9 +151,9 @@ function Verification({ onBack, data, isBankMode }: { onBack: () => void; data: 
               href={data.originalFileUrl || '#'} 
               download={data.originalFileName || 'document.pdf'}
               className="primary" 
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#2563eb', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: '#2563eb', color: '#fff', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '14px' }}
             >
-              <Icon name="download" size={16}/> Download Original Copy
+              <Icon name="download" size={18}/> Download Original Document Copy
             </a>
           </div>
         </div>
@@ -189,6 +187,7 @@ export default function App() {
   const baseUrl = window.location.origin
   const [generatedUrl, setGeneratedUrl] = useState(baseUrl + '?verify=demo')
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const scanCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -208,10 +207,11 @@ export default function App() {
     accType, 
     certId,
     originalFileName: activeFile?.name || fileName,
-    originalFileUrl: activeFile ? URL.createObjectURL(activeFile) : ''
+    originalFileUrl: activeFile ? URL.createObjectURL(activeFile) : '',
+    scanUrl: generatedUrl
   }
 
-  if (page === 'verify') return <Verification onBack={() => { setPage('app'); window.history.pushState({}, '', window.location.pathname); }} data={currentData} isBankMode={mode === 'bank'} />
+  if (page === 'verify') return <Verification onBack={() => { setPage('app'); window.history.pushState({}, '', window.location.pathname); }} data={currentData} isBankMode={mode === 'bank'} scanCanvasRef={scanCanvasRef} />
 
   const downloadPNG = () => {
     if (!qrCanvasRef.current) return
@@ -297,7 +297,7 @@ export default function App() {
           <div className="top-actions"><label className="search"><Icon name="search"/><input placeholder="Search records..."/><kbd>⌘ K</kbd></label><button className="icon-btn"><Icon name="bell"/><i/></button><div className="profile"><span>MA</span><div><b>Mostak Ahmed</b><small>Administrator</small></div><Icon name="arrow" size={14}/></div></div>
         </header>
         <main className="content">
-          <div className="title-row"><div><p>DOCUMENT ENGINE</p><h1>Generate secure document QR</h1><span>Create dynamic, verifiable links for your PDF documents.</span></div><button className="preview-link" onClick={() => setPage('verify')}><Icon name="external"/> Open verification page</button></div>
+          <div className="title-row"><div><p>DOCUMENT ENGINE</p><h1>Generate secure document QR</h1><span>Upload your Trade License or document to link with new QR code.</span></div><button className="preview-link" onClick={() => setPage('verify')}><Icon name="external"/> Open verification page</button></div>
           <div className="tabs">
             <button className={mode==='direct'?'active':''} onClick={() => { setMode('direct'); setGenerated(false); }}><Icon name="file"/>Direct PDF upload</button>
             <button className={mode==='bank'?'active':''} onClick={() => { setMode('bank'); setGenerated(false); }}><Icon name="bank"/>Custom bank statement</button>
@@ -306,8 +306,8 @@ export default function App() {
           {mode === 'direct' ? (
             <div className="grid-layout">
               <section className="panel form-panel">
-                <div className="panel-head"><span className="step">01</span><div><h2>Upload original PDF document</h2><p>Original file stays intact, new generated QR code gets attached on top.</p></div></div>
-                <UploadBox title={fileName || 'Drop your Trade License PDF here'} hint={fileName ? 'Ready to generate QR code' : 'or click to browse · PDF up to 25MB'} onFile={(f) => { setActiveFile(f); setFileName(f.name); }}/>
+                <div className="panel-head"><span className="step">01</span><div><h2>Upload Trade License / Document</h2><p>Original file stays intact, new generated QR code will be placed at the top-left corner upon scanning.</p></div></div>
+                <UploadBox title={fileName || 'Drop your Trade License PDF/Image here'} hint={fileName ? 'Ready to generate QR code' : 'or click to browse · PDF up to 25MB'} onFile={(f) => { setActiveFile(f); setFileName(f.name); }}/>
                 <div className="settings-row"><div><b>Link settings</b><span>Configure access to the original document</span></div><label className="switch-row"><span>Allow public access</span><input type="checkbox" defaultChecked/><i/></label></div>
                 <button className="primary wide" disabled={loading || !activeFile} onClick={handleDirectUploadProcess}><span>{generated ? <Icon name="check"/> : <Icon name="grid"/>}</span>{loading ? 'Processing...' : generated ? 'QR code generated' : 'Generate QR code'}</button>
               </section>
@@ -315,7 +315,7 @@ export default function App() {
                 <div className="panel-head small"><div><h2>QR code preview</h2><p>Updates after generation</p></div><span className={generated?'status live':'status'}>{generated?'Live':'Preview'}</span></div>
                 <div className="qr-stage" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
-                  <span style={{ marginTop: '10px' }}>Scan to view original document copy</span>
+                  <span style={{ marginTop: '10px' }}>Scan to view original uploaded document</span>
                 </div>
                 <div className="url-block"><label>Unique document URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
                 <div className="download-row">
