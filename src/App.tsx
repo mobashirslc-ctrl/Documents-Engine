@@ -336,9 +336,13 @@ export default function App() {
       const proxyBaseUrl = 'https://wild-grass-514c.mobashir-eduaimers.workers.dev';
       const finalProxyLink = `${proxyBaseUrl}?id=${docRef.id}`;
 
-      setGeneratedUrl(finalProxyLink); // QR কোডের ভেতরে ক্লাউডফ্লেয়ার ওয়ার্কার লিংক এনকোড হবে
-      setDisplayUrl(customDirectUrl ? `${customDirectUrl}?id=${docRef.id}` : finalProxyLink); // UI-তে কাস্টম বা ওয়ার্কার লিংক শো করবে
-      setGenerated(true)
+      // কাস্টম ইউআরএলে ইতিমধ্যে কোনো '?' আছে কি না তা চেক করা
+      const separator = customBankUrl && customBankUrl.includes('?') ? '&' : '?';
+      const officialCustomLink = customBankUrl ? `${customBankUrl}${separator}id=${docRef.id}` : finalProxyLink;
+
+      setGeneratedUrl(finalProxyLink); 
+      setDisplayUrl(officialCustomLink); 
+      setGenerated(true);
     } catch (error) {
       console.error("Firestore error:", error)
     } finally {
@@ -379,9 +383,13 @@ export default function App() {
       const proxyBaseUrl = 'https://wild-grass-514c.mobashir-eduaimers.workers.dev';
       const finalProxyLink = `${proxyBaseUrl}?id=${docRef.id}`;
 
-      setGeneratedUrl(finalProxyLink); // QR কোডের ভেতরে ক্লাউডফ্লেয়ার ওয়ার্কার লিংক এনকোড হবে
-      setDisplayUrl(customBankUrl ? `${customBankUrl}?id=${docRef.id}` : finalProxyLink); // ইউজার ইন্টারফেসে কাস্টম অফিশিয়াল লিংক শো ও কপি হবে
-      setGenerated(true)
+      // কাস্টম ইউআরএলে ইতিমধ্যে কোনো '?' আছে কি না তা চেক করা
+      const separator = customBankUrl && customBankUrl.includes('?') ? '&' : '?';
+      const officialCustomLink = customBankUrl ? `${customBankUrl}${separator}id=${docRef.id}` : finalProxyLink;
+
+      setGeneratedUrl(finalProxyLink); 
+      setDisplayUrl(officialCustomLink); 
+      setGenerated(true);
 
     } catch (error) {
       console.error("Firestore error:", error)
