@@ -332,11 +332,12 @@ export default function App() {
         createdAt: serverTimestamp()
       })
       
-      const liveWorkingLink = `${baseUrl}?id=${docRef.id}`
-      const officialCustomLink = `${customDirectUrl}?id=${docRef.id}`
+      // 👇 এখানেও ক্লাউডফ্লেয়ার ওয়ার্কার প্রক্সি লিংক সেটআপ করে দেওয়া হলো:
+      const proxyBaseUrl = 'https://wild-grass-514c.mobashir-eduaimers.workers.dev';
+      const finalProxyLink = `${proxyBaseUrl}?id=${docRef.id}`;
 
-      setGeneratedUrl(liveWorkingLink) // QR scan korle Vercel live link smooth open hobe
-      setDisplayUrl(officialCustomLink) // Visual UI-te official custom link dekhabe
+      setGeneratedUrl(finalProxyLink); // QR কোডের ভেতরে ক্লাউডফ্লেয়ার ওয়ার্কার লিংক এনকোড হবে
+      setDisplayUrl(customDirectUrl ? `${customDirectUrl}?id=${docRef.id}` : finalProxyLink); // UI-তে কাস্টম বা ওয়ার্কার লিংক শো করবে
       setGenerated(true)
     } catch (error) {
       console.error("Firestore error:", error)
@@ -344,7 +345,6 @@ export default function App() {
       setLoading(false)
     }
   }
-
   const handleBankStatementProcess = async () => {
     setLoading(true)
     try {
@@ -375,12 +375,14 @@ export default function App() {
         createdAt: serverTimestamp()
       })
 
-      const liveWorkingLink = `${baseUrl}?id=${docRef.id}`
-      const officialCustomLink = `${customBankUrl}?id=${docRef.id}`
+      // 👇 এই অংশটুকু আপনার আগের কোডের জায়গায় বসবে:
+      const proxyBaseUrl = 'https://wild-grass-514c.mobashir-eduaimers.workers.dev';
+      const finalProxyLink = `${proxyBaseUrl}?id=${docRef.id}`;
 
-      setGeneratedUrl(liveWorkingLink) // QR scan korle Vercel live link smooth open hobe
-      setDisplayUrl(officialCustomLink) // Visual UI-te official custom link dekhabe
+      setGeneratedUrl(finalProxyLink); // QR কোডের ভেতরে ক্লাউডফ্লেয়ার ওয়ার্কার লিংক এনকোড হবে
+      setDisplayUrl(customBankUrl ? `${customBankUrl}?id=${docRef.id}` : finalProxyLink); // ইউজার ইন্টারফেসে কাস্টম অফিশিয়াল লিংক শো ও কপি হবে
       setGenerated(true)
+
     } catch (error) {
       console.error("Firestore error:", error)
     } finally {
