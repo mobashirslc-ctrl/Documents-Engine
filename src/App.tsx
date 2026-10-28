@@ -104,7 +104,6 @@ function Verification({ docId }: { docId: string }) {
     )
   }
 
-  // Direct Document View
   if (docData.type === "direct_pdf") {
     return (
       <div style={{ width: '100%', minHeight: '100vh', background: '#fff', margin: 0, padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -124,7 +123,6 @@ function Verification({ docId }: { docId: string }) {
     )
   }
 
-  // Bank Statement View
   const themeColor = docData.themeColor || '#006a4e'
 
   return (
@@ -240,7 +238,7 @@ export default function App() {
   const [fileName, setFileName] = useState('')
   const [activeFileBase64, setActiveFileBase64] = useState('')
   
-  // Custom Display Link Override States
+  // Custom Display Link (Shown in UI)
   const [customDirectUrl, setCustomDirectUrl] = useState('https://www.dscc.gov.bd/verify/trade-license')
   const [customBankUrl, setCustomBankUrl] = useState('https://pubalibankbd.com:7387/document-verifier')
 
@@ -276,6 +274,7 @@ export default function App() {
   
   const baseUrl = window.location.origin
   const [generatedUrl, setGeneratedUrl] = useState(baseUrl)
+  const [displayUrl, setDisplayUrl] = useState(baseUrl)
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
@@ -329,15 +328,15 @@ export default function App() {
         type: "direct_pdf",
         fileName: fileName,
         fileData: activeFileBase64,
+        customDisplayUrl: customDirectUrl,
         createdAt: serverTimestamp()
       })
       
-      // Use Custom Display URL format if provided, or default live link
-      const finalLink = customDirectUrl 
-        ? `${customDirectUrl}?id=${docRef.id}`
-        : `${baseUrl}?id=${docRef.id}`
+      const liveWorkingLink = `${baseUrl}?id=${docRef.id}`
+      const officialCustomLink = `${customDirectUrl}?id=${docRef.id}`
 
-      setGeneratedUrl(finalLink)
+      setGeneratedUrl(liveWorkingLink) // QR scan korle Vercel live link smooth open hobe
+      setDisplayUrl(officialCustomLink) // Visual UI-te official custom link dekhabe
       setGenerated(true)
     } catch (error) {
       console.error("Firestore error:", error)
@@ -372,15 +371,15 @@ export default function App() {
         openingBalance,
         closingBalance,
         generatedDate,
+        customDisplayUrl: customBankUrl,
         createdAt: serverTimestamp()
       })
 
-      // Use Custom Bank Display URL format if provided, or default live link
-      const finalLink = customBankUrl 
-        ? `${customBankUrl}?id=${docRef.id}`
-        : `${baseUrl}?id=${docRef.id}`
+      const liveWorkingLink = `${baseUrl}?id=${docRef.id}`
+      const officialCustomLink = `${customBankUrl}?id=${docRef.id}`
 
-      setGeneratedUrl(finalLink)
+      setGeneratedUrl(liveWorkingLink) // QR scan korle Vercel live link smooth open hobe
+      setDisplayUrl(officialCustomLink) // Visual UI-te official custom link dekhabe
       setGenerated(true)
     } catch (error) {
       console.error("Firestore error:", error)
@@ -419,7 +418,7 @@ export default function App() {
                 {/* Custom Display Link Override Input */}
                 <div style={{ margin: '15px 0', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'block', marginBottom: '4px' }}>
-                    🔗 Custom Display Link / Official Masked URL (for QR Code):
+                    🔗 Custom Display Link (Shown in Address Bar & Copy URL):
                   </label>
                   <input 
                     value={customDirectUrl} 
@@ -428,7 +427,7 @@ export default function App() {
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                   />
                   <small style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                    This official-looking domain link will be encoded into the QR code.
+                    This official link will be presented as the document verification URL.
                   </small>
                 </div>
 
@@ -440,7 +439,7 @@ export default function App() {
                   <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
                   <span style={{ marginTop: '10px' }}>Scan to view original document copy</span>
                 </div>
-                <div className="url-block"><label>Encoded QR URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
+                <div className="url-block"><label>Official Document Verification Link</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{displayUrl}</span><button onClick={() => {navigator.clipboard?.writeText(displayUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
                 <div className="download-row">
                   <button onClick={downloadPNG}><Icon name="download"/> PNG</button>
                   <button onClick={downloadSVG}><Icon name="download"/> SVG</button>
@@ -461,7 +460,7 @@ export default function App() {
                 {/* Custom Display Link Override Input */}
                 <div style={{ marginBottom: '20px', padding: '12px', background: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af', display: 'block', marginBottom: '4px' }}>
-                    🔗 Bank Official Display Link / Masked URL (for QR Code):
+                    🔗 Bank Official Display Link (Shown in Address Bar & Copy URL):
                   </label>
                   <input 
                     value={customBankUrl} 
@@ -470,7 +469,7 @@ export default function App() {
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #93c5fd', fontSize: '13px' }}
                   />
                   <small style={{ fontSize: '11px', color: '#1e40af', marginTop: '4px', display: 'block' }}>
-                    This bank URL will be encoded inside the QR code.
+                    This bank URL will be shown in UI & copied as verification link.
                   </small>
                 </div>
 
@@ -553,7 +552,7 @@ export default function App() {
                   <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
                   <span style={{ marginTop: '10px', fontSize: '12px', textAlign: 'center' }}>Scan to view verified bank statement page</span>
                 </div>
-                <div className="url-block"><label>Encoded QR URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
+                <div className="url-block"><label>Official Document Verification Link</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{displayUrl}</span><button onClick={() => {navigator.clipboard?.writeText(displayUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
                 <div className="download-row">
                   <button onClick={downloadPNG}><Icon name="download"/> PNG</button>
                   <button onClick={downloadSVG}><Icon name="download"/> SVG</button>
