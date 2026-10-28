@@ -45,7 +45,6 @@ function QRCode({ value, canvasRef, size = 150 }: { value: string; canvasRef: Re
       )
     }
   }, [value, canvasRef, size])
-
   return <canvas ref={canvasRef} style={{ display: 'block' }} />
 }
 
@@ -62,7 +61,6 @@ function UploadBox({ title, hint, compact = false, onFile }: { title: string; hi
   )
 }
 
-// Verification Component - Renders either Trade License or Bank Statement Templates
 function Verification({ docId }: { docId: string }) {
   const [docData, setDocData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -78,7 +76,6 @@ function Verification({ docId }: { docId: string }) {
           docRef = doc(db, "documents", docId)
           docSnap = await getDoc(docRef)
         }
-
         if (docSnap.exists()) {
           setDocData(docSnap.data())
         }
@@ -107,7 +104,7 @@ function Verification({ docId }: { docId: string }) {
     )
   }
 
-  // Direct Document Soft Copy View
+  // Direct Document View
   if (docData.type === "direct_pdf") {
     return (
       <div style={{ width: '100%', minHeight: '100vh', background: '#fff', margin: 0, padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -127,150 +124,109 @@ function Verification({ docId }: { docId: string }) {
     )
   }
 
-  // BANK STATEMENT TEMPLATE VIEW
+  // Bank Statement View
   const themeColor = docData.themeColor || '#006a4e'
 
   return (
     <div style={{ background: '#f8fafc', minHeight: '100vh', fontFamily: 'Arial, sans-serif', paddingBottom: '40px' }}>
-      {/* Dynamic Bank Header Bar */}
-      <header style={{ background: themeColor, color: '#fff', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {docData.bankLogoUrl ? (
-            <img src={docData.bankLogoUrl} alt="Bank Logo" style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#fff', borderRadius: '4px', padding: '2px' }} />
-          ) : (
-            <div style={{ background: '#fff', color: themeColor, fontWeight: 'bold', width: '36px', height: '36px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
-              {docData.bankLogoText || 'BANK'}
-            </div>
-          )}
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{docData.bankName || 'PUBALI BANK PLC.'}</h2>[cite: 12, 13]
-            <span style={{ fontSize: '11px', opacity: 0.9 }}>Document Verifier</span>[cite: 12]
-          </div>
+      {docData.padHeaderUrl ? (
+        <div style={{ width: '100%', background: '#fff', borderBottom: '2px solid #e2e8f0', textAlign: 'center' }}>
+          <img src={docData.padHeaderUrl} alt="Bank Pad Header" style={{ width: '100%', maxHeight: '160px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
         </div>
-        <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-          Visit Website
-        </button>
-      </header>
+      ) : (
+        <header style={{ background: themeColor, color: '#fff', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {docData.bankLogoUrl ? (
+              <img src={docData.bankLogoUrl} alt="Bank Logo" style={{ width: '36px', height: '36px', objectFit: 'contain', background: '#fff', borderRadius: '4px', padding: '2px' }} />
+            ) : (
+              <div style={{ background: '#fff', color: themeColor, fontWeight: 'bold', width: '36px', height: '36px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
+                {docData.bankLogoText || 'BANK'}
+              </div>
+            )}
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>{docData.bankName || 'PUBALI BANK PLC.'}</h2>
+              <span style={{ fontSize: '11px', opacity: 0.9 }}>Document Verifier</span>
+            </div>
+          </div>
+          <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+            Visit Website
+          </button>
+        </header>
+      )}
 
-      {/* Main Body */}
       <main style={{ maxWidth: '640px', margin: '30px auto', padding: '0 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
           <div style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#166534', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-            <Icon name="check" size={16}/> Valid Statement[cite: 12, 13]
+            <Icon name="check" size={16}/> Valid Statement
           </div>
         </div>
-
         <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', margin: '0 0 20px 0' }}>
-          The following details are confirmed and digitally generated by {docData.bankName || 'Pubali Bank PLC.'}[cite: 12, 13]
+          The following details are confirmed and digitally generated by {docData.bankName || 'Pubali Bank PLC.'}
         </p>
 
-        {/* TEMPLATE TYPE 1: TO WHOM IT MAY CONCERN */}
         {docData.templateType === 'certificate' ? (
           <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
             <h3 style={{ textDecoration: 'underline', textAlign: 'center', fontSize: '16px', fontWeight: 'bold', margin: '0 0 20px 0', color: '#0f172a' }}>
-              TO WHOM IT MAY CONCERN[cite: 12]
+              TO WHOM IT MAY CONCERN
             </h3>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '11px', color: '#64748b', marginBottom: '20px' }}>
-              <div>
-                <span>ACCOUNT HOLDER NAME:</span>[cite: 12]<br/>
-                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.holderName}</b>[cite: 12]
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <span>DATE:</span>[cite: 12]<br/>
-                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.stmtPeriod}</b>[cite: 12]
-              </div>
-              <div>
-                <span>CERTIFICATE ID:</span>[cite: 12]<br/>
-                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.certId}</b>[cite: 12]
-              </div>
+              <div><span>ACCOUNT HOLDER NAME:</span><br/><b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.holderName}</b></div>
+              <div style={{ textAlign: 'right' }}><span>DATE:</span><br/><b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.stmtPeriod}</b></div>
+              <div><span>CERTIFICATE ID:</span><br/><b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.certId}</b></div>
             </div>
-
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
-                    <th style={{ padding: '8px' }}>SL#[cite: 12]</th>
-                    <th style={{ padding: '8px' }}>A/C NUMBER[cite: 12]</th>
-                    <th style={{ padding: '8px' }}>OPEN DATE[cite: 12]</th>
-                    <th style={{ padding: '8px' }}>A/C TYPE[cite: 12]</th>
-                    <th style={{ padding: '8px', textAlign: 'right' }}>BALANCE (BDT)[cite: 12]</th>
-                    <th style={{ padding: '8px', textAlign: 'right' }}>BALANCE (USD)[cite: 12]</th>
+                    <th style={{ padding: '8px' }}>SL#</th>
+                    <th style={{ padding: '8px' }}>A/C NUMBER</th>
+                    <th style={{ padding: '8px' }}>OPEN DATE</th>
+                    <th style={{ padding: '8px' }}>A/C TYPE</th>
+                    <th style={{ padding: '8px', textAlign: 'right' }}>BALANCE (BDT)</th>
+                    <th style={{ padding: '8px', textAlign: 'right' }}>BALANCE (USD)</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '10px 8px' }}>1[cite: 12]</td>
-                    <td style={{ padding: '10px 8px' }}>{docData.accNumber}[cite: 12]</td>
-                    <td style={{ padding: '10px 8px' }}>{docData.openDate || '25-Jun-2019'}</td>[cite: 12]
-                    <td style={{ padding: '10px 8px' }}>{docData.accType}[cite: 12]</td>
-                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold' }}>{docData.balanceBdt}</td>[cite: 12]
-                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold' }}>{docData.balanceUsd}</td>[cite: 12]
+                    <td style={{ padding: '10px 8px' }}>1</td>
+                    <td style={{ padding: '10px 8px' }}>{docData.accNumber}</td>
+                    <td style={{ padding: '10px 8px' }}>{docData.openDate || '25-Jun-2019'}</td>
+                    <td style={{ padding: '10px 8px' }}>{docData.accType}</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold' }}>{docData.balanceBdt}</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold' }}>{docData.balanceUsd}</td>
                   </tr>
                   <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                    <td colSpan={4} style={{ padding: '10px 8px', textAlign: 'right' }}>Total[cite: 12]</td>
-                    <td style={{ padding: '10px 8px', textAlign: 'right', color: themeColor }}>{docData.balanceBdt}</td>[cite: 12]
-                    <td style={{ padding: '10px 8px', textAlign: 'right', color: themeColor }}>{docData.balanceUsd}</td>[cite: 12]
+                    <td colSpan={4} style={{ padding: '10px 8px', textAlign: 'right' }}>Total</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', color: themeColor }}>{docData.balanceBdt}</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', color: themeColor }}>{docData.balanceUsd}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
         ) : (
-          /* TEMPLATE TYPE 2: STATEMENT SUMMARY */
           <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
             <h3 style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', margin: '0 0 20px 0', color: '#0f172a' }}>
-              Statement Summary[cite: 13]
+              Statement Summary
             </h3>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>ACCOUNT NO:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '15px', color: '#0f172a' }}>{docData.accNumber}</b>[cite: 13]
-              </div>
-
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>ACCOUNT TYPE:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '14px', color: '#0f172a' }}>{docData.accType}</b>[cite: 13]
-              </div>
-
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>ACCOUNT NAME:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '14px', color: '#0f172a' }}>{docData.holderName} (OWNER NAME: {docData.ownerName || docData.holderName})</b>[cite: 13]
-              </div>
-
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>OPENING BALANCE:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '14px', color: themeColor }}>{docData.openingBalance}</b>[cite: 13]
-              </div>
-
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>CLOSING BALANCE:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '14px', color: themeColor }}>{docData.closingBalance}</b>[cite: 13]
-              </div>
-
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>STATEMENT PERIOD:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.stmtPeriod}</b>[cite: 13]
-              </div>
-
-              <div>
-                <span style={{ color: '#64748b', fontSize: '11px', textTransform: 'uppercase' }}>CERTIFICATE ID:</span>[cite: 13]<br/>
-                <b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.certId}</b>[cite: 13]
-              </div>
-
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>ACCOUNT NO:</span><br/><b style={{ fontSize: '15px', color: '#0f172a' }}>{docData.accNumber}</b></div>
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>ACCOUNT TYPE:</span><br/><b style={{ fontSize: '14px', color: '#0f172a' }}>{docData.accType}</b></div>
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>ACCOUNT NAME:</span><br/><b style={{ fontSize: '14px', color: '#0f172a' }}>{docData.holderName} (OWNER NAME: {docData.ownerName || docData.holderName})</b></div>
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>OPENING BALANCE:</span><br/><b style={{ fontSize: '14px', color: themeColor }}>{docData.openingBalance}</b></div>
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>CLOSING BALANCE:</span><br/><b style={{ fontSize: '14px', color: themeColor }}>{docData.closingBalance}</b></div>
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>STATEMENT PERIOD:</span><br/><b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.stmtPeriod}</b></div>
+              <div><span style={{ color: '#64748b', fontSize: '11px' }}>CERTIFICATE ID:</span><br/><b style={{ fontSize: '13px', color: '#0f172a' }}>{docData.certId}</b></div>
               <div style={{ marginTop: '10px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', color: '#64748b', fontSize: '11px', textAlign: 'center' }}>
-                STATEMENT GENERATED DATE: {docData.generatedDate || '9/22/2026 12:59:42 PM'}[cite: 13]
+                STATEMENT GENERATED DATE: {docData.generatedDate || '9/22/2026 12:59:42 PM'}
               </div>
             </div>
           </div>
         )}
-
-        {/* Footer Contact Details */}
         <footer style={{ marginTop: '25px', textAlign: 'center', fontSize: '11px', color: '#64748b', lineHeight: '1.6' }}>
-          {docData.helpline && <div>Helpline: {docData.helpline}</div>}[cite: 12]
+          {docData.helpline && <div>Helpline: {docData.helpline}</div>}
           {docData.email && <div>Email: {docData.email}</div>}
-          {docData.address && <div>Head Office: {docData.address}</div>}[cite: 12]
+          {docData.address && <div>Head Office: {docData.address}</div>}
         </footer>
       </main>
     </div>
@@ -284,19 +240,22 @@ export default function App() {
   const [fileName, setFileName] = useState('')
   const [activeFileBase64, setActiveFileBase64] = useState('')
   
+  // Custom Display Link Override States
+  const [customDirectUrl, setCustomDirectUrl] = useState('https://www.dscc.gov.bd/verify/trade-license')
+  const [customBankUrl, setCustomBankUrl] = useState('https://pubalibankbd.com:7387/document-verifier')
+
   // Bank Custom Branding States
   const [bankName, setBankName] = useState('PUBALI BANK PLC.')
   const [bankLogoText, setBankLogoText] = useState('PB')
   const [bankLogoUrl, setBankLogoUrl] = useState('')
+  const [padHeaderUrl, setPadHeaderUrl] = useState('')
   const [themeColor, setThemeColor] = useState('#006a4e')
   const [helpline, setHelpline] = useState('+8809660616253, 16253')
   const [email, setEmail] = useState('info@pubalibankbd.com')
   const [address, setAddress] = useState('26, Dilkusha C/A, Dhaka-1000, Bangladesh')
-
-  // Statement Template Switcher
+  
   const [templateType, setTemplateType] = useState<'certificate' | 'summary'>('certificate')
-
-  // Statement Fields
+  
   const [holderName, setHolderName] = useState('MOSTAK AHMED')
   const [ownerName, setOwnerName] = useState('HASHIM MOSTAK AHMAD')
   const [accNumber, setAccNumber] = useState('3720101077850')
@@ -305,7 +264,6 @@ export default function App() {
   const [openDate, setOpenDate] = useState('25-Jun-2019')
   const [certId, setCertId] = useState('226047078')
   
-  // Amounts
   const [balanceBdt, setBalanceBdt] = useState('৳6,09,671.50')
   const [balanceUsd, setBalanceUsd] = useState('4,936.61')
   const [openingBalance, setOpeningBalance] = useState('৳8,54,117.50')
@@ -373,8 +331,13 @@ export default function App() {
         fileData: activeFileBase64,
         createdAt: serverTimestamp()
       })
-      const liveLink = `${baseUrl}?id=${docRef.id}`
-      setGeneratedUrl(liveLink)
+      
+      // Use Custom Display URL format if provided, or default live link
+      const finalLink = customDirectUrl 
+        ? `${customDirectUrl}?id=${docRef.id}`
+        : `${baseUrl}?id=${docRef.id}`
+
+      setGeneratedUrl(finalLink)
       setGenerated(true)
     } catch (error) {
       console.error("Firestore error:", error)
@@ -392,6 +355,7 @@ export default function App() {
         bankName,
         bankLogoText,
         bankLogoUrl,
+        padHeaderUrl,
         themeColor,
         helpline,
         email,
@@ -410,8 +374,13 @@ export default function App() {
         generatedDate,
         createdAt: serverTimestamp()
       })
-      const liveLink = `${baseUrl}?id=${docRef.id}`
-      setGeneratedUrl(liveLink)
+
+      // Use Custom Bank Display URL format if provided, or default live link
+      const finalLink = customBankUrl 
+        ? `${customBankUrl}?id=${docRef.id}`
+        : `${baseUrl}?id=${docRef.id}`
+
+      setGeneratedUrl(finalLink)
       setGenerated(true)
     } catch (error) {
       console.error("Firestore error:", error)
@@ -446,6 +415,23 @@ export default function App() {
               <section className="panel form-panel">
                 <div className="panel-head"><span className="step">01</span><div><h2>Upload Trade License / Document</h2><p>Scanning QR will directly open your uploaded file soft copy instantly.</p></div></div>
                 <UploadBox title={fileName || 'Drop your Trade License PDF/Image here'} hint={fileName ? 'Ready to generate QR code' : 'or click to browse · up to 25MB'} onFile={handleFileUpload}/>
+                
+                {/* Custom Display Link Override Input */}
+                <div style={{ margin: '15px 0', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'block', marginBottom: '4px' }}>
+                    🔗 Custom Display Link / Official Masked URL (for QR Code):
+                  </label>
+                  <input 
+                    value={customDirectUrl} 
+                    onChange={e => setCustomDirectUrl(e.target.value)}
+                    placeholder="e.g. https://www.dscc.gov.bd/verify/trade-license"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                  <small style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                    This official-looking domain link will be encoded into the QR code.
+                  </small>
+                </div>
+
                 <button className="primary wide" disabled={loading || !activeFileBase64} onClick={handleDirectUploadProcess}><span>{generated ? <Icon name="check"/> : <Icon name="grid"/>}</span>{loading ? 'Processing...' : generated ? 'QR code generated' : 'Generate QR code'}</button>
               </section>
               <aside className="panel preview-panel">
@@ -454,7 +440,7 @@ export default function App() {
                   <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
                   <span style={{ marginTop: '10px' }}>Scan to view original document copy</span>
                 </div>
-                <div className="url-block"><label>Unique document URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
+                <div className="url-block"><label>Encoded QR URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
                 <div className="download-row">
                   <button onClick={downloadPNG}><Icon name="download"/> PNG</button>
                   <button onClick={downloadSVG}><Icon name="download"/> SVG</button>
@@ -468,8 +454,24 @@ export default function App() {
                   <span className="step">01</span>
                   <div>
                     <h2 style={{ fontSize: '18px', fontWeight: 700 }}>Custom Bank Statement Engine</h2>
-                    <p style={{ fontSize: '13px', color: '#64748b' }}>Configure Bank Branding & Statement Template Format</p>
+                    <p style={{ fontSize: '13px', color: '#64748b' }}>Configure Bank Pad Header & Statement Template Format</p>
                   </div>
+                </div>
+
+                {/* Custom Display Link Override Input */}
+                <div style={{ marginBottom: '20px', padding: '12px', background: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af', display: 'block', marginBottom: '4px' }}>
+                    🔗 Bank Official Display Link / Masked URL (for QR Code):
+                  </label>
+                  <input 
+                    value={customBankUrl} 
+                    onChange={e => setCustomBankUrl(e.target.value)}
+                    placeholder="e.g. https://pubalibankbd.com:7387/document-verifier"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #93c5fd', fontSize: '13px' }}
+                  />
+                  <small style={{ fontSize: '11px', color: '#1e40af', marginTop: '4px', display: 'block' }}>
+                    This bank URL will be encoded inside the QR code.
+                  </small>
                 </div>
 
                 {/* Template Selector */}
@@ -493,27 +495,27 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Bank Branding Options */}
-                <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>1. Bank Branding & Contact Options</h3>
+                {/* Bank Pad Header & Branding Options */}
+                <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>1. Bank Pad Header & Branding Options</h3>
                 <div className="fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                  <label><span>Bank Name</span><input value={bankName} onChange={e => setBankName(e.target.value)}/></label>
-                  <label><span>Bank Theme Color (Pad Color)</span><input type="color" value={themeColor} onChange={e => setThemeColor(e.target.value)} style={{ height: '38px', cursor: 'pointer' }}/></label>
-                  <label><span>Bank Logo Text / Initials</span><input value={bankLogoText} onChange={e => setBankLogoText(e.target.value)}/></label>
-                  <label><span>Bank Logo Upload (Image)</span>
+                  <label style={{ gridColumn: 'span 2' }}>
+                    <span style={{ fontWeight: 700, color: '#2563eb' }}>Bank Pad Header Image Upload (Top Header Banner)</span>
                     <input type="file" accept="image/*" onChange={e => {
                       if(e.target.files?.[0]) {
                         const r = new FileReader()
-                        r.onload = ev => setBankLogoUrl(ev.target?.result as string)
+                        r.onload = ev => setPadHeaderUrl(ev.target?.result as string)
                         r.readAsDataURL(e.target.files[0])
                       }
-                    }} style={{ fontSize: '11px' }}/>
+                    }} style={{ padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%', marginTop: '4px' }}/>
                   </label>
+                  <label><span>Bank Name</span><input value={bankName} onChange={e => setBankName(e.target.value)}/></label>
+                  <label><span>Bank Theme Color (Fallback)</span><input type="color" value={themeColor} onChange={e => setThemeColor(e.target.value)} style={{ height: '38px', cursor: 'pointer' }}/></label>
                   <label><span>Helpline / Phone</span><input value={helpline} onChange={e => setHelpline(e.target.value)}/></label>
                   <label><span>Bank Email</span><input value={email} onChange={e => setEmail(e.target.value)}/></label>
                   <label style={{ gridColumn: 'span 2' }}><span>Head Office Address</span><input value={address} onChange={e => setAddress(e.target.value)}/></label>
                 </div>
 
-                {/* Statement Fields based on Selected Template */}
+                {/* Statement Fields */}
                 <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>2. Statement Information Fields</h3>
                 <div className="fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <label><span>Account Holder Name</span><input value={holderName} onChange={e => setHolderName(e.target.value)}/></label>
@@ -551,7 +553,7 @@ export default function App() {
                   <QRCode value={generatedUrl} canvasRef={qrCanvasRef}/>
                   <span style={{ marginTop: '10px', fontSize: '12px', textAlign: 'center' }}>Scan to view verified bank statement page</span>
                 </div>
-                <div className="url-block"><label>Unique document URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
+                <div className="url-block"><label>Encoded QR URL</label><div><span style={{ fontSize: '12px', wordBreak: 'break-all' }}>{generatedUrl}</span><button onClick={() => {navigator.clipboard?.writeText(generatedUrl);setCopied(true)}}><Icon name={copied?'check':'copy'} size={16}/>{copied?'Copied':'Copy'}</button></div></div>
                 <div className="download-row">
                   <button onClick={downloadPNG}><Icon name="download"/> PNG</button>
                   <button onClick={downloadSVG}><Icon name="download"/> SVG</button>
