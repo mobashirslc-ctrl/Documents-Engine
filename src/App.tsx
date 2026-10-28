@@ -104,29 +104,56 @@ function Verification({ docId }: { docId: string }) {
     )
   }
 
+  const customDisplayUrl = docData.customDisplayUrl || 'https://verify.pubalibankbd.com:7387/document-verifier';
+
   if (docData.type === "direct_pdf") {
     return (
-      <div style={{ width: '100%', minHeight: '100vh', background: '#fff', margin: 0, padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        {docData.fileData ? (
-          docData.fileName?.match(/\.pdf$/i) ? (
-            <iframe src={docData.fileData} style={{ width: '100vw', height: '100vh', border: 'none' }} title="Document PDF" />
-          ) : (
-            <img src={docData.fileData} alt="Document Copy" style={{ width: '100%', height: 'auto', maxHeight: '100vh', objectFit: 'contain' }} />
-          )
-        ) : (
-          <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-            <h2>{docData.fileName || 'Document'}</h2>
-            <p>File loaded successfully.</p>
+      <div style={{ width: '100%', minHeight: '100vh', background: '#fff', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
+        {/* Fake Browser Address Bar Eyewash Header */}
+        <div style={{ width: '100%', background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', padding: '6px 14px', borderRadius: '20px', border: '1px solid #cbd5e1', width: '100%', maxWidth: '600px', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}>
+            <span style={{ color: '#16a34a', display: 'flex', alignItems: 'center' }}>🔒</span>
+            <span style={{ color: '#94a3b8', fontSize: '12px', fontFamily: 'monospace' }}>https://</span>
+            <span style={{ color: '#1e293b', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {customDisplayUrl}
+            </span>
+            <span style={{ marginLeft: 'auto', background: '#dcfce7', color: '#166534', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>VERIFIED</span>
           </div>
-        )}
+        </div>
+
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          {docData.fileData ? (
+            docData.fileName?.match(/\.pdf$/i) ? (
+              <iframe src={docData.fileData} style={{ width: '100vw', height: 'calc(100vh - 45px)', border: 'none' }} title="Document PDF" />
+            ) : (
+              <img src={docData.fileData} alt="Document Copy" style={{ width: '100%', height: 'auto', maxHeight: 'calc(100vh - 45px)', objectFit: 'contain' }} />
+            )
+          ) : (
+            <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>
+              <h2>{docData.fileName || 'Document'}</h2>
+              <p>File loaded successfully.</p>
+            </div>
+          )}
+        </div>
       </div>
     )
   }
 
   const themeColor = docData.themeColor || '#006a4e'
-
   return (
     <div style={{ background: '#f8fafc', minHeight: '100vh', fontFamily: 'Arial, sans-serif', paddingBottom: '40px' }}>
+      {/* Fake Browser Address Bar Eyewash Header */}
+      <div style={{ width: '100%', background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'sticky', top: 0, zIndex: 9999 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', padding: '6px 14px', borderRadius: '20px', border: '1px solid #cbd5e1', width: '100%', maxWidth: '600px', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}>
+          <span style={{ color: '#16a34a', display: 'flex', alignItems: 'center' }}>🔒</span>
+          <span style={{ color: '#94a3b8', fontSize: '12px', fontFamily: 'monospace' }}>https://</span>
+          <span style={{ color: '#1e293b', fontSize: '12px', fontFamily: 'monospace', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {customDisplayUrl}
+          </span>
+          <span style={{ marginLeft: 'auto', background: '#dcfce7', color: '#166534', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px' }}>SECURE</span>
+        </div>
+      </div>
+
       {docData.padHeaderUrl ? (
         <div style={{ width: '100%', background: '#fff', borderBottom: '2px solid #e2e8f0', textAlign: 'center' }}>
           <img src={docData.padHeaderUrl} alt="Bank Pad Header" style={{ width: '100%', maxHeight: '160px', objectFit: 'contain', display: 'block', margin: '0 auto' }} />
@@ -151,7 +178,6 @@ function Verification({ docId }: { docId: string }) {
           </button>
         </header>
       )}
-
       <main style={{ maxWidth: '640px', margin: '30px auto', padding: '0 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
           <div style={{ background: '#dcfce7', border: '1px solid #86efac', color: '#166534', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -161,7 +187,6 @@ function Verification({ docId }: { docId: string }) {
         <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', margin: '0 0 20px 0' }}>
           The following details are confirmed and digitally generated by {docData.bankName || 'Pubali Bank PLC.'}
         </p>
-
         {docData.templateType === 'certificate' ? (
           <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
             <h3 style={{ textDecoration: 'underline', textAlign: 'center', fontSize: '16px', fontWeight: 'bold', margin: '0 0 20px 0', color: '#0f172a' }}>
@@ -238,10 +263,10 @@ export default function App() {
   const [fileName, setFileName] = useState('')
   const [activeFileBase64, setActiveFileBase64] = useState('')
   
-  // Custom Display Link (Shown in UI)
+  // Custom Display Link (Shown in UI & Fake Address Bar Banner)
   const [customDirectUrl, setCustomDirectUrl] = useState('https://www.dscc.gov.bd/verify/trade-license')
   const [customBankUrl, setCustomBankUrl] = useState('https://pubalibankbd.com:7387/document-verifier')
-
+  
   // Bank Custom Branding States
   const [bankName, setBankName] = useState('PUBALI BANK PLC.')
   const [bankLogoText, setBankLogoText] = useState('PB')
@@ -267,7 +292,6 @@ export default function App() {
   const [openingBalance, setOpeningBalance] = useState('৳8,54,117.50')
   const [closingBalance, setClosingBalance] = useState('৳15,15,318.00')
   const [generatedDate, setGeneratedDate] = useState('9/22/2026 12:59:42 PM')
-
   const [copied, setCopied] = useState(false)
   const [generated, setGenerated] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -332,16 +356,10 @@ export default function App() {
         createdAt: serverTimestamp()
       })
       
-      // 👇 এখানেও ক্লাউডফ্লেয়ার ওয়ার্কার প্রক্সি লিংক সেটআপ করে দেওয়া হলো:
       const proxyBaseUrl = 'https://wild-grass-514c.mobashir-eduaimers.workers.dev';
       const finalProxyLink = `${proxyBaseUrl}?id=${docRef.id}`;
-
-      // কাস্টম ইউআরএলে ইতিমধ্যে কোনো '?' আছে কি না তা চেক করা
-      const separator = customBankUrl && customBankUrl.includes('?') ? '&' : '?';
-      const officialCustomLink = customBankUrl ? `${customBankUrl}${separator}id=${docRef.id}` : finalProxyLink;
-
       setGeneratedUrl(finalProxyLink); 
-      setDisplayUrl(officialCustomLink); 
+      setDisplayUrl(customDirectUrl); 
       setGenerated(true);
     } catch (error) {
       console.error("Firestore error:", error)
@@ -349,6 +367,7 @@ export default function App() {
       setLoading(false)
     }
   }
+
   const handleBankStatementProcess = async () => {
     setLoading(true)
     try {
@@ -378,19 +397,12 @@ export default function App() {
         customDisplayUrl: customBankUrl,
         createdAt: serverTimestamp()
       })
-
-      // 👇 এই অংশটুকু আপনার আগের কোডের জায়গায় বসবে:
+      
       const proxyBaseUrl = 'https://wild-grass-514c.mobashir-eduaimers.workers.dev';
       const finalProxyLink = `${proxyBaseUrl}?id=${docRef.id}`;
-
-      // কাস্টম ইউআরএলে ইতিমধ্যে কোনো '?' আছে কি না তা চেক করা
-      const separator = customBankUrl && customBankUrl.includes('?') ? '&' : '?';
-      const officialCustomLink = customBankUrl ? `${customBankUrl}${separator}id=${docRef.id}` : finalProxyLink;
-
       setGeneratedUrl(finalProxyLink); 
-      setDisplayUrl(officialCustomLink); 
+      setDisplayUrl(customBankUrl); 
       setGenerated(true);
-
     } catch (error) {
       console.error("Firestore error:", error)
     } finally {
@@ -418,17 +430,15 @@ export default function App() {
             <button className={mode==='direct'?'active':''} onClick={() => { setMode('direct'); setGenerated(false); }}><Icon name="file"/>Direct PDF upload</button>
             <button className={mode==='bank'?'active':''} onClick={() => { setMode('bank'); setGenerated(false); }}><Icon name="bank"/>Custom bank statement</button>
           </div>
-
           {mode === 'direct' ? (
             <div className="grid-layout">
               <section className="panel form-panel">
                 <div className="panel-head"><span className="step">01</span><div><h2>Upload Trade License / Document</h2><p>Scanning QR will directly open your uploaded file soft copy instantly.</p></div></div>
                 <UploadBox title={fileName || 'Drop your Trade License PDF/Image here'} hint={fileName ? 'Ready to generate QR code' : 'or click to browse · up to 25MB'} onFile={handleFileUpload}/>
                 
-                {/* Custom Display Link Override Input */}
                 <div style={{ margin: '15px 0', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', display: 'block', marginBottom: '4px' }}>
-                    🔗 Custom Display Link (Shown in Address Bar & Copy URL):
+                    🔗 Custom Display Link (Shown in Address Bar Banner & Copy URL):
                   </label>
                   <input 
                     value={customDirectUrl} 
@@ -437,10 +447,9 @@ export default function App() {
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                   />
                   <small style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                    This official link will be presented as the document verification URL.
+                    This official link will be shown in the simulated address bar banner when scanned.
                   </small>
                 </div>
-
                 <button className="primary wide" disabled={loading || !activeFileBase64} onClick={handleDirectUploadProcess}><span>{generated ? <Icon name="check"/> : <Icon name="grid"/>}</span>{loading ? 'Processing...' : generated ? 'QR code generated' : 'Generate QR code'}</button>
               </section>
               <aside className="panel preview-panel">
@@ -466,11 +475,9 @@ export default function App() {
                     <p style={{ fontSize: '13px', color: '#64748b' }}>Configure Bank Pad Header & Statement Template Format</p>
                   </div>
                 </div>
-
-                {/* Custom Display Link Override Input */}
                 <div style={{ marginBottom: '20px', padding: '12px', background: '#eff6ff', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
                   <label style={{ fontSize: '12px', fontWeight: 700, color: '#1e40af', display: 'block', marginBottom: '4px' }}>
-                    🔗 Bank Official Display Link (Shown in Address Bar & Copy URL):
+                    🔗 Bank Official Display Link (Shown in Address Bar Banner & Copy URL):
                   </label>
                   <input 
                     value={customBankUrl} 
@@ -479,11 +486,9 @@ export default function App() {
                     style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #93c5fd', fontSize: '13px' }}
                   />
                   <small style={{ fontSize: '11px', color: '#1e40af', marginTop: '4px', display: 'block' }}>
-                    This bank URL will be shown in UI & copied as verification link.
+                    This bank URL will be shown in the simulated address bar banner when scanned.
                   </small>
                 </div>
-
-                {/* Template Selector */}
                 <div style={{ marginBottom: '20px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
                   <label style={{ fontWeight: 700, fontSize: '13px', display: 'block', marginBottom: '8px' }}>Select Statement Template Type:</label>
                   <div style={{ display: 'flex', gap: '10px' }}>
@@ -503,8 +508,6 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-
-                {/* Bank Pad Header & Branding Options */}
                 <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>1. Bank Pad Header & Branding Options</h3>
                 <div className="fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <label style={{ gridColumn: 'span 2' }}>
@@ -523,8 +526,6 @@ export default function App() {
                   <label><span>Bank Email</span><input value={email} onChange={e => setEmail(e.target.value)}/></label>
                   <label style={{ gridColumn: 'span 2' }}><span>Head Office Address</span><input value={address} onChange={e => setAddress(e.target.value)}/></label>
                 </div>
-
-                {/* Statement Fields */}
                 <h3 style={{ fontSize: '14px', fontWeight: 700, borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '12px' }}>2. Statement Information Fields</h3>
                 <div className="fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                   <label><span>Account Holder Name</span><input value={holderName} onChange={e => setHolderName(e.target.value)}/></label>
@@ -533,7 +534,6 @@ export default function App() {
                   <label><span>Account Type</span><input value={accType} onChange={e => setAccType(e.target.value)}/></label>
                   <label><span>Certificate ID</span><input value={certId} onChange={e => setCertId(e.target.value)}/></label>
                   <label><span>Statement Period / Date</span><input value={stmtPeriod} onChange={e => setStmtPeriod(e.target.value)}/></label>
-
                   {templateType === 'certificate' ? (
                     <>
                       <label><span>Account Open Date</span><input value={openDate} onChange={e => setOpenDate(e.target.value)}/></label>
@@ -548,14 +548,11 @@ export default function App() {
                     </>
                   )}
                 </div>
-
                 <button className="primary wide" disabled={loading} onClick={handleBankStatementProcess} style={{ background: themeColor }}>
                   <span><Icon name={generated?'check':'grid'}/></span>
                   {loading ? 'Processing...' : generated ? 'Bank Statement Generated' : 'Generate Custom Bank Statement QR'}
                 </button>
               </section>
-
-              {/* QR Preview Side Bar */}
               <aside className="panel preview-panel">
                 <div className="panel-head small"><div><h2>QR Code Preview</h2><p>Updates after generation</p></div><span className={generated?'status live':'status'}>{generated?'Live':'Preview'}</span></div>
                 <div className="qr-stage" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
